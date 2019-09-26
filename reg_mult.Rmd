@@ -1,13 +1,15 @@
 ---
 title: "Regressão Múltipla"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(car)
+library(rms)
 ```
 
 ## Load data
@@ -17,36 +19,125 @@ boston = readxl::read_excel("boston.xlsx")
 b = boston[,-1]
 ```
 
-## Adicionando labels
+## Manipulacao inicial dos dados
+### Adicionando labels
 
 ```{r echo=TRUE}
 b$chas=as.factor(b$chas)
 levels(b$chas)=c("otherwise", "bounds river")
 ```
 
-## Sumario dos dados 
+### Sumario dos dados 
 
 ```{r echo=TRUE}
 summary(b)
 ```
 
 
-## Transformando log
+### Transformando log
 
 ```{r echo=TRUE}
 b$crim = log(b$crim)
 ```
 
-## Fazendo Regressão com todas as variaveis
+## Regressao incial
+### Fazendo Regressão com todas as variaveis
 
 ```{r echo=TRUE}
 
-reg.mlt=lm(data=b, medv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + lstat)
+reg.mlt=lm(data=b, medv ~ crim + zn + indus + chas + nox + rm + age + dis +
+             rad + tax + ptratio + lstat)
 
 summary(reg.mlt)
 
 ```
 
+### Testando multicolinearidade
+VIF > 5 indica alta chance de multicolinearidade.
+```{r echo=TRUE}
+
+round(vif(reg.mlt),1)
+
+```
+
+
+### Detecção de anomalias
+
+Cooks Distances -> Pontos Influentes
+Studentized residuals -> Outliers em Y
+hat-values -> Outliers em X
+
+```{r echo=TRUE}
+
+influenceIndexPlot(reg.mlt , vars=c("Cook","Studentized","hat"))
+
+```
+
+## Regressao com seleção de variáveis
+
+```{r echo=TRUE}
+
+reg.mlt2=step(reg.mlt)
+
+```
+
+### Novo sumario da regressao
+
+```{r echo=TRUE}
+
+summary(reg.mlt2)
+
+```
+
+### Nova deteccao de multicolinearidade
+
+```{r echo=TRUE}
+
+round(vif(reg.mlt2),1)
+
+```
+
+### Novas anomalias
+
+```{r echo=TRUE}
+
+influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
+
+```
+
+## Criar previsoes
+
+```{r echo=TRUE}
+
+b$medv_HAT=fitted.values(reg.mlt2) #Previsoes
+b$RES=residuals(reg.mlt2) #Resuduais das previsoes
+b$EP=b$RES/b$medv*100 #Erro percentual das previsoes
+
+```
+
+### Erro percentual
+
+```{r echo=TRUE}
+
+hist(b$EP, xlab = 'Erro Percentual (%)', main = '')
+
+```
+
+### Previsao e real
+
+```{r echo=TRUE}
+
+plot(x = b$medv, y = b$medv_HAT, xlab = 'Preco Real', ylab = 'Previsao')
+
+```
+
+### Teste anova
+
+```{r echo=TRUE}
+
+anova(reg.mlt2)
+
+```
 
 
 
