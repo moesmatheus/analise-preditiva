@@ -1,0 +1,54 @@
+---
+title: "Regressão Múltipla"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load data
+
+```{r echo=TRUE}
+boston = readxl::read_excel("boston.xlsx")
+b = boston[,-1]
+```
+
+## Adicionando labels
+
+```{r echo=TRUE}
+b$chas=as.factor(b$chas)
+levels(b$chas)=c("otherwise", "bounds river")
+```
+
+## Sumario dos dados 
+
+```{r echo=TRUE}
+summary(b)
+```
+
+
+## Transformando log
+
+```{r echo=TRUE}
+b$crim = log(b$crim)
+```
+
+## Fazendo Regressão com todas as variaveis
+
+```{r echo=TRUE}
+
+reg.mlt=lm(data=b, medv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + lstat)
+
+summary(reg.mlt)
+
+```
+
+
+
+
+
+

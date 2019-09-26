@@ -9,6 +9,7 @@ levels(b$chas)=c("otherwise", "bounds river")
 #Transformando log
 b$crim = log(b$crim)
 
+#Exibir os dados
 summary(b)
 
 
