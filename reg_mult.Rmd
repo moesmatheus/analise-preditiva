@@ -10,13 +10,15 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(car)
 library(rms)
+library(plotly)
 ```
 
 ## Load data
 
 ```{r echo=TRUE}
 boston = readxl::read_excel("boston.xlsx")
-b = boston[,-1]
+b = boston#[,-1]
+#b = b[-c(365),]
 ```
 
 ## Manipulacao inicial dos dados
@@ -38,6 +40,7 @@ summary(b)
 
 ```{r echo=TRUE}
 b$crim = log(b$crim)
+#b$medv = log(b$medv)
 ```
 
 ## Regressao incial
@@ -104,7 +107,32 @@ round(vif(reg.mlt2),1)
 influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
 
 ```
+## Criar novo modelo considerando Multicolinearidade
 
+```{r echo=TRUE}
+
+reg.mlt=lm(data=b, medv ~ zn + chas + nox + rm + dis + rad + 
+    ptratio + lstat)
+
+reg.mlt2=step(reg.mlt)
+
+summary(reg.mlt2)
+
+round(vif(reg.mlt2),1)
+
+```
+
+```{r echo=TRUE}
+
+round(vif(reg.mlt2),1)
+
+```
+
+```{r echo=TRUE}
+
+influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
+
+```
 ## Criar previsoes
 
 ```{r echo=TRUE}
@@ -127,8 +155,13 @@ hist(b$EP, xlab = 'Erro Percentual (%)', main = '')
 
 ```{r echo=TRUE}
 
-plot(x = b$medv, y = b$medv_HAT, xlab = 'Preco Real', ylab = 'Previsao')
 
+#plot(x = b$medv, y = b$medv_HAT, xlab = 'Preco Real', ylab = 'Previsao')
+
+p = ggplot(b) +
+  geom_point(aes(x = medv, y = medv_HAT, name = id)) +
+  geom_smooth(method='lm',aes(x  = medv, y = medv) )
+ggplotly(p)
 ```
 
 ### Teste anova
@@ -140,6 +173,13 @@ anova(reg.mlt2)
 ```
 
 
+### Root mean sqared error
+
+```{r echo=TRUE}
+
+mean((b$medv - b$medv_HAT) ** 2) **0.5
+
+```
 
 
 
