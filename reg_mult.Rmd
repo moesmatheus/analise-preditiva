@@ -35,11 +35,33 @@ levels(b$chas)=c("otherwise", "bounds river")
 summary(b)
 ```
 
+### Filtrando dados
+
+```{r echo=TRUE}
+b = filter(b,medv <50)
+
+#b$dis = ifelse(b$dis >= 3, 3, b$dis)
+b$rad = ifelse(b$rad >= 9, 9, b$rad)
+b$tax = ifelse(b$tax >= 500, 500, b$tax)
+#b$nox = ifelse(b$nox >= 0.8, 0.75, b$nox)
+#b$rm = ifelse(b$rm >= 7.5, 7.5, b$rm)
+
+b = filter(b, id != 366)
+```
+
+### Ajustando valors
+
+
+```{r echo=TRUE}
+b = filter(b,medv <50)
+```
 
 ### Transformando log
 
 ```{r echo=TRUE}
-b$crim = log(b$crim)
+#b$crim = log(b$crim)
+b$lstat = log(b$lstat)
+b$dis = log(b$dis)
 #b$medv = log(b$medv)
 ```
 
@@ -107,32 +129,7 @@ round(vif(reg.mlt2),1)
 influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
 
 ```
-## Criar novo modelo considerando Multicolinearidade
 
-```{r echo=TRUE}
-
-reg.mlt=lm(data=b, medv ~ zn + chas + nox + rm + dis + rad + 
-    ptratio + lstat)
-
-reg.mlt2=step(reg.mlt)
-
-summary(reg.mlt2)
-
-round(vif(reg.mlt2),1)
-
-```
-
-```{r echo=TRUE}
-
-round(vif(reg.mlt2),1)
-
-```
-
-```{r echo=TRUE}
-
-influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
-
-```
 ## Criar previsoes
 
 ```{r echo=TRUE}
