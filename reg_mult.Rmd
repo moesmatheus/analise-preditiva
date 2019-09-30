@@ -2,9 +2,9 @@
 title: "Regressão Múltipla"
 output:
   word_document: default
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -46,6 +46,7 @@ b$rad = ifelse(b$rad >= 9, 9, b$rad)
 b$tax = ifelse(b$tax >= 500, 500, b$tax)
 #b$nox = ifelse(b$nox >= 0.8, 0.75, b$nox)
 #b$rm = ifelse(b$rm >= 7.5, 7.5, b$rm)
+b$zn = ifelse(b$zn > 0, 1, 0)
 
 #b = filter(b, id != 366)
 ```
@@ -161,7 +162,8 @@ p = ggplot(b) +
                  name = id #rownames(b)
                  )) +
   geom_smooth(method='lm',aes(x  = medv, y = medv) )
-ggplotly(p)
+#ggplotly(p)
+p
 ```
 
 ### Teste anova
@@ -181,5 +183,37 @@ mean((b$medv - b$medv_HAT) ** 2) **0.5
 
 ```
 
+## Fazer previsao
 
+```{r echo=TRUE}
+crim = 0.2651
+zn = 0.0
+indus = 9.69
+chas = 0.0
+nox = 0.5380
+rm = 6.208
+age = 77.50
+dis = log(3.207)
+rad = 5.0
+tax = 330
+ptratio = 19.05
+lstat = log(11.36)
 
+novo=data.frame(
+  crim = crim,
+  zn = zn,
+  indus = indus,
+  chas = chas,
+  nox = nox,
+  rm = rm,
+  age = age,
+  dis = dis,
+  rad = rad,
+  tax = tax,
+  ptratio = ptratio,
+  lstat = lstat
+  )
+lprice.hat=predict(reg.mlt2, novo)
+lprice.hat
+
+```

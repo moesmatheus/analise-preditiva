@@ -1,6 +1,11 @@
+
+
 boston = readxl::read_excel("boston.xlsx")
 
 b = boston[,-1]
+
+#esquisse::esquisser(b)
+#esquisse::esquisser(boston)
 
 #adicionando labels
 b$chas=as.factor(b$chas)
@@ -12,9 +17,8 @@ b$crim = log(b$crim)
 #Exibir os dados
 summary(b)
 
-
-
-reg.mlt=lm(data=b, medv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + ptratio + lstat)
+#Criar regressaão linear com todas as variaveis
+reg.mlt=lm(data=b, medv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + lstat)
 summary(reg.mlt)
 
 #multicolinearidade
