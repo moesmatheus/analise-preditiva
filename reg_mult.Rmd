@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(car)
 library(rms)
 library(plotly)
+library(corrplot)
 ```
 
 ## Load data
@@ -20,6 +21,23 @@ library(plotly)
 boston = readxl::read_excel("boston.xlsx")
 b = boston#[,-1]
 #b = b[-c(365),]
+```
+
+
+## Criar mapa de correlações
+
+```{r echo=TRUE}
+cor(b)->correlation
+corrplot(correlation, method = "number")
+```
+
+## Criar mapa de correlações com valores logarítimicos
+
+```{r echo=TRUE}
+b_log = b
+b_log[-c(14)] = log(b_log[-c(14)])
+cor(b_log)->correlation
+corrplot(correlation, method = "number")
 ```
 
 ## Manipulacao inicial dos dados
@@ -162,8 +180,7 @@ p = ggplot(b) +
                  name = id #rownames(b)
                  )) +
   geom_smooth(method='lm',aes(x  = medv, y = medv) )
-#ggplotly(p)
-p
+ggplotly(p)
 ```
 
 ### Teste anova
