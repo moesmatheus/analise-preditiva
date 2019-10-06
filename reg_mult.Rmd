@@ -13,6 +13,7 @@ library(car)
 library(rms)
 library(plotly)
 library(corrplot)
+library(readxl)
 ```
 
 ## Load data
