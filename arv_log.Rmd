@@ -1,0 +1,114 @@
+---
+title: "Regressão Logística"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(car)
+library(rms)
+library(plotly)
+library(corrplot)
+library(readxl)
+```
+
+
+# Carregar Dados
+
+```{r echo=TRUE}
+TEBA <- read_excel("TEBA.xlsx")
+```
+
+# Separar em treino e teste
+
+```{r echo=TRUE}
+set.seed(1234)
+index=sample(1:2000,1200)
+
+teba.learn=TEBA[index,]
+teba.test=TEBA[-index,]
+```
+
+# Criar arvore
+
+```{r echo=TRUE}
+library(rpart)
+library(rpart.plot)
+
+set.seed(93)
+ad1=rpart(data=teba.learn, cancel~idade+linhas+temp_cli+renda+fatura+temp_rsd+local+tvcabo+debaut, method = "class")
+prp(ad1, type=3, extra=104,nn=T, fallen.leaves = F, branch.lty = 5)
+
+
+```
+
+# Visualizacao alternativa
+
+```{r echo=TRUE}
+library(RColorBrewer)
+library(rattle)
+fancyRpartPlot(ad1)
+
+```
+
+
+# Saida crua da arvare
+
+```{r echo=TRUE}
+
+ad1
+
+```
+
+
+# Classificar individuos da porcao de treino
+
+```{r echo=TRUE}
+
+teba.learn$pred.lrn.class=predict(ad1, newdata = teba.learn, type = "class")
+table(teba.learn$cancel,teba.learn$pred.lrn.class)
+
+```
+
+# Analisar a necessidade de podar
+
+É necessario podar quando há decrescimo no valor de xerror
+
+```{r echo=TRUE}
+
+printcp(ad1)
+
+```
+
+# Podar a arvore
+
+```{r echo=TRUE}
+
+ad2=prune(ad1,cp=0.015)
+ad2
+prp(ad2, type=3, extra=104,nn=T, fallen.leaves = T, branch.lty = 5)
+
+```
+
+
+# Analisar resultado na amostra teste
+
+```{r echo=TRUE}
+
+ad2=prune(ad1,cp=0.015)
+ad2
+prp(ad2, type=3, extra=104,nn=T, fallen.leaves = T, branch.lty = 5)
+
+```
+
+
+
+
+
+
+
+

@@ -1,0 +1,166 @@
+---
+title: "Regressão Logística"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(car)
+library(rms)
+library(plotly)
+library(corrplot)
+library(readxl)
+```
+
+# Carregar Dados
+
+```{r echo=TRUE}
+TEBATRANSF <- read_excel("TEBATRANSF.xlsx")
+tt=TEBATRANSF[,-1]
+```
+
+# Separando X e Y
+
+```{r echo=TRUE}
+
+tt$cancelsim=ifelse(tt$cancel=="sim",1,0)  # Variavel a ser prevista
+tt=tt[,-10] #Variaveveis previsoras
+
+```
+
+# Separar texte e treino
+
+```{r echo=TRUE}
+set.seed(123)
+index=sample(1:2000, 1200 )
+lrn= tt[index,] #arquivo para desenvolvimento 
+tst=tt[-index,] #arquivo para teste
+```
+
+# Criar modelo
+
+```{r echo=TRUE}
+mod1=glm(data = lrn, cancelsim~.,family = binomial() )
+summary(mod1)
+```
+
+# Selecao de variaveis com base no criterio AIC
+
+```{r echo=TRUE}
+mod2=step(mod1)
+summary(mod2)
+```
+
+# Criar previsoes
+
+```{r echo=TRUE}
+tst$ps=predict(mod2, newdata = tst, type = "response")
+print(head(tst), digits=3)
+```
+
+# Fazer testes
+
+## Hosmer Lemeshow
+
+```{r echo=TRUE}
+library(ResourceSelection)  
+hoslem.test(mod2$y, fitted(mod2), g=10)  
+```
+
+## Spiegelhalter
+
+```{r echo=TRUE}
+library (rms)
+val.prob (tst$ps, tst$cancelsim, smooth = F)  
+```
+
+## Zoyowsky
+
+```{r echo=TRUE}
+library(arules)
+kp=discretize(tst$ps, method = 'frequency', breaks = 5)
+m=table(kp, tst$cancelsim)
+mp=prop.table(m,1)
+print(mp,digits=2)
+```
+
+# Matriz de classificação
+
+```{r echo=TRUE}
+PC=0.50  # Ponto de corte para classificacao
+klas=ifelse(tst$ps>=PC,"prev_sim","prev_nao")
+table(tst$cancelsim,klas)
+```
+
+# Criar previsao
+
+```{r echo=TRUE}
+novo.indiv=data.frame(idade=51,Ltempcli=3,Sfatura=25,local="A", debaut = "nao")
+novo.p=predict(mod2, novo.indiv, type="response")
+novo.p
+```
+
+# Criar previsoes com base em faixas de frequência
+
+```{r echo=TRUE}
+library(arules)
+xx=c("0.00 a 0.50","0.50 a 0.75", "0.75 a 1.00")
+kps=discretize(tst$ps, method = "fixed", breaks = c(0,.50,.75,1),labels  = xx)
+class=table(kps,tst$cancelsim)
+class
+print(prop.table(class,1), digits=3)
+```
+
+# Calcular indicadores
+
+```{r echo=TRUE}
+library(hmeasure)
+HMeasure(tst$cancelsim, tst$ps)$metric
+```
+
+# Cross validation
+
+```{r echo=TRUE}
+library(boot)
+mod3=glm(data = tt, cancelsim~.,family = binomial())
+mod4=step(mod3)
+#mod4
+set.seed(11)
+cvglm=cv.glm(data = tt, glmfit = mod4, K = 10)
+cvglm$delta[1]
+cv.glm(data = tt, glmfit = mod4)$delta[1]
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

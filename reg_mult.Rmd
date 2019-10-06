@@ -1,6 +1,7 @@
 ---
 title: "Regressão Múltipla"
 output:
+  word_document: default
   html_document:
     df_print: paged
   pdf_document: default
@@ -11,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(car)
 library(rms)
 library(plotly)
+library(corrplot)
+library(readxl)
 ```
 
 ## Load data
@@ -19,6 +22,23 @@ library(plotly)
 boston = readxl::read_excel("boston.xlsx")
 b = boston#[,-1]
 #b = b[-c(365),]
+```
+
+
+## Criar mapa de correlações
+
+```{r echo=TRUE}
+cor(b)->correlation
+corrplot(correlation, method = "number")
+```
+
+## Criar mapa de correlações com valores logarítimicos
+
+```{r echo=TRUE}
+b_log = b
+b_log[-c(14)] = log(b_log[-c(14)])
+cor(b_log)->correlation
+corrplot(correlation, method = "number")
 ```
 
 ## Manipulacao inicial dos dados
@@ -35,11 +55,34 @@ levels(b$chas)=c("otherwise", "bounds river")
 summary(b)
 ```
 
+### Filtrando dados
+
+```{r echo=TRUE}
+b = filter(b,medv <50)
+
+#b$dis = ifelse(b$dis >= 3, 3, b$dis)
+b$rad = ifelse(b$rad >= 9, 9, b$rad)
+b$tax = ifelse(b$tax >= 500, 500, b$tax)
+#b$nox = ifelse(b$nox >= 0.8, 0.75, b$nox)
+#b$rm = ifelse(b$rm >= 7.5, 7.5, b$rm)
+b$zn = ifelse(b$zn > 0, 1, 0)
+
+#b = filter(b, id != 366)
+```
+
+### Ajustando valors
+
+
+```{r echo=TRUE}
+b = filter(b,medv <50)
+```
 
 ### Transformando log
 
 ```{r echo=TRUE}
-b$crim = log(b$crim)
+#b$crim = log(b$crim)
+b$lstat = log(b$lstat)
+b$dis = log(b$dis)
 #b$medv = log(b$medv)
 ```
 
@@ -107,32 +150,7 @@ round(vif(reg.mlt2),1)
 influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
 
 ```
-## Criar novo modelo considerando Multicolinearidade
 
-```{r echo=TRUE}
-
-reg.mlt=lm(data=b, medv ~ zn + chas + nox + rm + dis + rad + 
-    ptratio + lstat)
-
-reg.mlt2=step(reg.mlt)
-
-summary(reg.mlt2)
-
-round(vif(reg.mlt2),1)
-
-```
-
-```{r echo=TRUE}
-
-round(vif(reg.mlt2),1)
-
-```
-
-```{r echo=TRUE}
-
-influenceIndexPlot(reg.mlt2 , vars=c("Cook","Studentized","hat"))
-
-```
 ## Criar previsoes
 
 ```{r echo=TRUE}
@@ -159,7 +177,9 @@ hist(b$EP, xlab = 'Erro Percentual (%)', main = '')
 #plot(x = b$medv, y = b$medv_HAT, xlab = 'Preco Real', ylab = 'Previsao')
 
 p = ggplot(b) +
-  geom_point(aes(x = medv, y = medv_HAT, name = id)) +
+  geom_point(aes(x = medv, y = medv_HAT, 
+                 name = id #rownames(b)
+                 )) +
   geom_smooth(method='lm',aes(x  = medv, y = medv) )
 ggplotly(p)
 ```
@@ -181,5 +201,37 @@ mean((b$medv - b$medv_HAT) ** 2) **0.5
 
 ```
 
+## Fazer previsao
 
+```{r echo=TRUE}
+crim = 0.2651
+zn = 0.0
+indus = 9.69
+chas = 0.0
+nox = 0.5380
+rm = 6.208
+age = 77.50
+dis = log(3.207)
+rad = 5.0
+tax = 330
+ptratio = 19.05
+lstat = log(11.36)
 
+novo=data.frame(
+  crim = crim,
+  zn = zn,
+  indus = indus,
+  chas = chas,
+  nox = nox,
+  rm = rm,
+  age = age,
+  dis = dis,
+  rad = rad,
+  tax = tax,
+  ptratio = ptratio,
+  lstat = lstat
+  )
+lprice.hat=predict(reg.mlt2, novo)
+lprice.hat
+
+```
