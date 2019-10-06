@@ -1,3 +1,6 @@
 .Rproj.user
 .DS_Store
 .Rhistory
+catboost_info
+Modelo Python.ipynb
+.ipynb_checkpoints
